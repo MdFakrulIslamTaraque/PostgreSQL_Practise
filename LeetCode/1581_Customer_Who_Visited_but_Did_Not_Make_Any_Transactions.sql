@@ -104,3 +104,13 @@ select                                  -- select the customer_id and count of v
 from no_trx
 group by 1                              -- group by customer_id, the first column in the select statement, so here we group by 1
 ;
+
+
+------------------------------------ second approach (JOIN) ------------------------------------
+select 
+    customer_id, count(customer_id) count_no_trans 
+from 
+    Visits 
+    left join Transactions on Visits.visit_id = Transactions.visit_id
+where 
+    transaction_id is null group by customer_id
