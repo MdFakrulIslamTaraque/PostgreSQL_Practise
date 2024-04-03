@@ -1,0 +1,5 @@
+host = "localhost"
+port = "5432"
+database = "dvdrental"
+user = "posttest"
+password = "12345678"
