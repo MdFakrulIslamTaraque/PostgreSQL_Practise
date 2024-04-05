@@ -1,7 +1,8 @@
 {
     "host": "localhost",
     "port": "5432",
-    "database": "dvdrental",
+    "source_database": "dvdrental",
+    "target_database": "destination",
     "user": "posttest",
     "password": "12345678"
 }

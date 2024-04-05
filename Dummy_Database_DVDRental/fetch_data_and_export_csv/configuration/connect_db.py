@@ -15,21 +15,36 @@ with open(config_file, 'r') as file:
 class Credential:
         def __init__(self):
                 try:
-                        # Connect to the PostgreSQL database
-                        self.connection = psycopg2.connect(
+                        # Connect to the PostgreSQL source database
+                        self.source_connection = psycopg2.connect(
                                 host=env_var['host'],
                                 port=env_var['port'],
-                                database=env_var['database'],
+                                database=env_var['source_database'],
                                 user=env_var['user'],
                                 password=env_var['password']
                         )
-                        print("Connected to the database successfully")
+                        print("Connected to the source database successfully")
+
+                        # connect to the PostgreSQL target database
+                        self.target_connection = psycopg2.connect(
+                                host=env_var['host'],
+                                port=env_var['port'],
+                                database=env_var['target_database'],
+                                user=env_var['user'],
+                                password=env_var['password']
+                        )
+
                 except (Exception, Error) as error:
                         print("Error while connecting to PostgreSQL", error)
         
-        #close the connection
-        def close_connection(self):
-                self.connection.close()
+        #close the  source connection
+        def close_source_connection(self):
+                self.source_connection.close()
+                print("Connection closed successfully")
+        
+        #close the target connection
+        def close_target_connection(self):
+                self.target_connection.close()
                 print("Connection closed successfully")
         
         #close the cursor
