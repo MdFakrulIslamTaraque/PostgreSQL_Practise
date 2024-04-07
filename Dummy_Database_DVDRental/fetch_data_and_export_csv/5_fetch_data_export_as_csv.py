@@ -36,52 +36,35 @@ class fetcher_and_exporter(configuration.Credential):
                 finally:
                         self.close_cursor(cursor)
                         self.close_source_connection()
-        
-        # read all the values from a source table and insert them to another target table ( already created in the database), before that: 
-        # convert the data types to match the target table
-        # replace the NaN values with None
-        # convert the extracted data to a pandas dataframe(nupy array)
-        # join the column names and data types to create a string
-        # run the insert query to insert the data into the database table ( which is already creted in the database)
-        # using extras module to insert the data into the database table
-        # commit the changes, close the cursor and connection
-        # print the message that the data has been inserted
 
         def insert_data(self, source_table, target_table):
                 try:
                     source_cursor = self.source_connection.cursor()
                     target_cursor = self.target_connection.cursor()
                     try:
-                            source_cursor.execute(f"SELECT * FROM {source_table}")
-                            self.view_data_description(source_cursor)
-                            data = source_cursor.fetchall()
-                            columns = [desc[0] for desc in source_cursor.description]
-                            df = pd.DataFrame(data, columns=columns)
-                        #     df = df.where(pd.notnull(df), None)
-                        #     data = df.to_numpy()
-                        #     column_names = ', '.join(columns)
-                        #     column_values = ', '.join(['%s' for _ in range(len(columns))])
-
-                            df = df.convert_dtypes() # acctual data types 
-                            df.replace({np.nan: None}, inplace = True)  # replace null value
-                            column_values = [tuple(x) for x in df.to_numpy()]  # extract data
-                            column_names = ",".join([col[0] for col in source_cursor.description])  # columns
+                        source_cursor.execute(f"SELECT * FROM {source_table}")
+                        self.view_data_description(source_cursor)
+                        data = source_cursor.fetchall()
                             
                     except Error as e:
                                 print(f"Error: {e}")
 
                     try:
-                            insert_query = f"INSERT INTO {target_table} ({column_names}) VALUES ({column_values})"
-                            target_cursor.executemany(insert_query, data)
-                            self.target_connection.commit()
-                            print(f"Data inserted into {target_table}")
+                        # Build the INSERT query dynamically with placeholders
+                                column_names = [col.name for col in source_cursor.description]
+                                placeholder_list = ', '.join(['%s' for _ in column_names])
+                                insert_query = f"INSERT INTO {target_table} ({', '.join(column_names)}) VALUES ({placeholder_list})"
+                                print(insert_query)
 
+                                for row in data:
+                                        try:
+                                        # Execute the insert query with parameterization (prevents SQL injection)
+                                                target_cursor.execute(insert_query, row)
+                                        except (Exception, Error) as error:
+                                                print("Error inserting data:", error)
 
-                            self.close_source_connection()
-                            self.close_target_connection()
-
-                            self.close_cursor(source_cursor)
-                            self.close_cursor(target_cursor)
+                                # Commit changes to the other database
+                                self.target_connection.commit()
                 
                     except Error as e:
                             print(f"Error: {e}")
@@ -101,4 +84,5 @@ class fetcher_and_exporter(configuration.Credential):
 
 worker2 = fetcher_and_exporter()
 # worker2.fetch_export('country')
-worker2.insert_data('country', 'country_v2')
+# worker2.insert_data('country', 'country_v2')
+worker2.insert_data('actor', 'actor_v2')
