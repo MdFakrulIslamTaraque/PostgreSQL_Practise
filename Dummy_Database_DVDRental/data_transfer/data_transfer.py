@@ -84,5 +84,5 @@ class fetcher_and_exporter(configuration.Credential):
 
 worker2 = fetcher_and_exporter()
 # worker2.fetch_export('country')
-# worker2.insert_data('country', 'country_v2')
-worker2.insert_data('actor', 'actor_v2')
+worker2.insert_data('country', 'country_v2')
+# worker2.insert_data('actor', 'actor_v2')
