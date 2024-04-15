@@ -16,3 +16,19 @@ from
 ) as tb
 where row_num <= 5
 order by row_num
+
+
+------------------------------------- cte approach ----------------------------------
+with cte as (
+	select
+		f.length
+		, dense_rank() over (order by f.length) as seq
+	from
+		film f
+)
+select
+	*
+from
+	cte
+where
+	seq <= 5

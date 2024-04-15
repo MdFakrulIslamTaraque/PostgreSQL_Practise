@@ -12,3 +12,15 @@ FROM (
 WHERE
     row_num <= 5
 order by rental_rate;
+
+---------------------------------------- cte approach ----------------------------------
+-- here we are partitioning by rental_rate and then ordering by rental_rate, for which all the same rental_rate will have same seq number, and getting new rental_rate will reset the seq number to 1.
+-- so we are filtering the seq number = 1 to get the unique rental_rate.
+with cte as (
+	select rental_rate
+	, row_number() over (partition by rental_rate order by rental_rate) as seq
+	from film f
+)
+select *
+from cte
+where seq = 1;

@@ -2,10 +2,14 @@
 		-- one col: no string
 		-- another co: no int 
 
-SELECT
-    rating
+with cte as (
+	select rating
     , unnest(regexp_match(rating::text, '([a-zA-Z]+)')) as string_value
-    , unnest(regexp_match(rating::text, '(\d+)')) as string_value
-
+    , unnest(regexp_match(rating::text, '(\d+)'))::numeric as numeric_value
 FROM
-    film;
+    film
+)
+select rating
+	,coalesce(string_value, 'N/A')
+	, coalesce (numeric_value, 0)
+from cte;
