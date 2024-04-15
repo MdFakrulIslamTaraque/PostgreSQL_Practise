@@ -37,6 +37,10 @@ class Credential:
                 except (Exception, Error) as error:
                         print("Error while connecting to PostgreSQL", error)
         
+        #load the environment variables
+        def load_env_var(self):
+                return env_var
+
         #close the  source connection
         def close_source_connection(self):
                 self.source_connection.close()
