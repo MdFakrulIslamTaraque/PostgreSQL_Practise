@@ -29,10 +29,13 @@ class fetcher_and_exporter(configuration.Credential):
                             print(f'{table_name}.csv has been created')
                             self.close_source_connection()
                             self.close_cursor(cursor)
+                            return True
                     except Error as e:
                             print(f"Error: {e}")
+                            return False
                 except Error as e:
                         print(f"Error: {e}")
+                        return False
                 finally:
                         self.close_cursor(cursor)
                         self.close_source_connection()
@@ -48,6 +51,7 @@ class fetcher_and_exporter(configuration.Credential):
                             
                     except Error as e:
                                 print(f"Error: {e}")
+                                return False
 
                     try:
                         # Build the INSERT query dynamically with placeholders
@@ -65,9 +69,12 @@ class fetcher_and_exporter(configuration.Credential):
 
                                 # Commit changes to the other database
                                 self.target_connection.commit()
+                                return True
+
                 
                     except Error as e:
                             print(f"Error: {e}")
+                            return False
 
                 except Error as e:
                         print(f"Error: {e}")
