@@ -72,7 +72,7 @@ class fetcher_and_exporter(configuration.Credential):
 
                         # Commit changes to the other database
                         self.target_connection.commit()
-                        logger.info(f"{source_database} - {source_table} - {target_database} - {target_table} - sucess")
+                        logger.info(f"{source_database} - {source_table} - {target_database} - {target_table} - success")
                         return True
 
                 
