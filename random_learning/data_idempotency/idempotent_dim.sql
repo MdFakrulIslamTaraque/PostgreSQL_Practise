@@ -1,5 +1,3 @@
--- create stored procedure
-CREATE OR REPLACE PROCEDURE `data-engineering-440306.financial_sample.generate_dim_industry`()
 BEGIN
     -- create dim_industry
     CREATE TABLE IF NOT EXISTS `data-engineering-440306.financial_sample.dim_industry` (
@@ -12,34 +10,51 @@ BEGIN
     );
 
 
+    -- create dim table as temprary
+    create table if not exists `data-engineering-440306.financial_sample.dim_industry_temp`
+    as
+    with codes_with_entry as (
+    SELECT 
+        Industry_aggregation_NZSIOC, Industry_code_NZSIOC, Industry_name_NZSIOC, Industry_code_ANZSIC06
+        , row_number() over(partition by 
+                                Industry_code_NZSIOC, Industry_code_ANZSIC06 
+                            order by 
+                                Industry_aggregation_NZSIOC, Industry_code_NZSIOC, Industry_name_NZSIOC, Industry_code_ANZSIC06
+        ) as rn
+    FROM `data-engineering-440306.financial_sample.financial_sample_data3`
+    )
+    select
+        GENERATE_UUID() AS id
+        , Industry_aggregation_NZSIOC, Industry_code_NZSIOC, Industry_name_NZSIOC, Industry_code_ANZSIC06
+        , CURRENT_DATE() AS created_at
+    from
+        codes_with_entry
+    where
+        1 = 1
+        and rn = 1
+    order by
+        1,2,3,4,5
+    ;
+
     -- Insert new unique industries from raw data if any new entry appears merge them
     MERGE `data-engineering-440306.financial_sample.dim_industry` AS target
     USING (
-            with codes_with_entry as (
-                SELECT 
-                    Industry_aggregation_NZSIOC, Industry_code_NZSIOC, Industry_name_NZSIOC, Industry_code_ANZSIC06
-                    , row_number() over(partition by 
-                                            Industry_code_NZSIOC, Industry_code_ANZSIC06 
-                                        order by 
-                                            Industry_aggregation_NZSIOC, Industry_code_NZSIOC, Industry_name_NZSIOC, Industry_code_ANZSIC06
-                        ) as rn
-                FROM `data-engineering-440306.financial_sample.financial_sample_data3`
-            )
             select
-                GENERATE_UUID() AS id
-                , Industry_aggregation_NZSIOC, Industry_code_NZSIOC, Industry_name_NZSIOC, Industry_code_ANZSIC06
-                ,CURRENT_DATE() AS created_at
+                *
             from
-                codes_with_entry
-            where 1 = 1
-                and rn = 1
+                `data-engineering-440306.financial_sample.dim_industry_temp`
     ) AS source
     ON target.Industry_code_NZSIOC = source.Industry_code_NZSIOC
     and target.Industry_code_ANZSIC06 = source.Industry_code_ANZSIC06
     WHEN NOT MATCHED THEN
         INSERT (id, Industry_aggregation_NZSIOC, Industry_code_NZSIOC, Industry_name_NZSIOC, Industry_code_ANZSIC06, created_at)
         VALUES (source.id, source.Industry_aggregation_NZSIOC, source.Industry_code_NZSIOC, source.Industry_name_NZSIOC, source.Industry_code_ANZSIC06, source.created_at);
-END;
+
+
+    -- drop the temp table
+    drop table `data-engineering-440306.financial_sample.dim_industry_temp`;
+
+END
 
 -- insert a new entry and call the stored procedure and check the dim_industry table
 insert into `data-engineering-440306.financial_sample.financial_sample_data3`
